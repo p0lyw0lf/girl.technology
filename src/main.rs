@@ -1,9 +1,4 @@
-use axum::{
-    debug_handler,
-    response::{Html, IntoResponse, Response},
-    routing::get,
-    Router,
-};
+use axum::{response::Html, routing::get, Router};
 use clap::Parser;
 use std::net::Ipv4Addr;
 use std::sync::OnceLock;
@@ -15,11 +10,7 @@ fn tera() -> &'static Tera {
 }
 
 async fn index() -> Html<String> {
-    Html(
-        tera()
-            .render("index.html", &tera::Context::new())
-            .unwrap(),
-    )
+    Html(tera().render("index.html", &tera::Context::new()).unwrap())
 }
 
 #[derive(Parser)]
@@ -38,10 +29,6 @@ async fn main() {
     let app = Router::new().route("/", get(index));
 
     let listener = tokio::net::TcpListener::bind(&bind_addr).await.unwrap();
-
-    for name in tera().get_template_names() {
-        println!("{name}");
-    }
 
     println!("Now listening at http://{bind_addr}");
     axum::serve(listener, app).await.unwrap();
