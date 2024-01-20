@@ -1,0 +1,4 @@
+# Allow the watcher to execute certain systemctl commands without a password
+
+bot-github_webhook_watcher ALL = (root) /usr/bin/systemctl daemon-reload
+bot-github_webhook_watcher ALL = (root) /usr/bin/systemctl restart *
