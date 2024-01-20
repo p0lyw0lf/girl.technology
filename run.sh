@@ -1,3 +1,3 @@
 #!/bin/env sh
 
-cargo watch -- cargo run --release
+cargo run --release

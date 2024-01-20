@@ -1,0 +1,15 @@
+[Unit]
+Description=girl.technology main site
+After=network.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+User=bot-girl-technology
+WorkingDirectory=/home/ubuntu/girl.technology
+ExecStart=/home/ubuntu/girl.technology/run.sh
+
+[Install]
+WantedBy=multi-user.target

@@ -1,3 +1,3 @@
 #!/bin/env sh
 
-sudo -n systemctl restart nginx
+sudo -n systemctl restart bot-girl-technology.service
