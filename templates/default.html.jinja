@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en-US">
+<head>
+{% block head %}
+<meta charset="utf-8" />
+<meta http-equiv="x-ua-compatible" content="ie=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+{# TODO: description #}
+<title>
+  {% block title %}{{main_url}}{% endblock title %}
+</title>
+{# TODO: favicon
+<link
+  rel="icon"
+  type="image/png"
+  href="/uploads/favicon-16.png"
+  sizes="16x16"
+/>
+<link
+  rel="icon"
+  type="image/png"
+  href="/uploads/favicon-32.png"
+  sizes="32x32"
+/>
+<link rel="icon" type="image/png" href="/uploads/favicon-200.png" />
+#}
+{% endblock head %}
+</head>
+<body>
+<header>
+{% block banner %}
+  <h1><a href="{{main_url}}">{% block bannertext %}girl.technology{% endblock bannertext %}</a></h1>
+  <nav>
+    {% block nav %}
+    <a href="{{main_url}}">home</a>
+    <a href="/list">list</a>
+    {% endblock nav %}
+  </nav>
+{% endblock banner %}
+</header>
+<main>
+{% block main %}{% endblock main %}
+</main>
+<footer>
+  {% block footer %}
+  <nav>
+    <a href="https://github.com/p0lyw0lf/girl.technology">github</a>
+  </nav>
+  {% endblock footer %}
+</footer>
+</body>
+</html>

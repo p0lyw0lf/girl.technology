@@ -1,0 +1,14 @@
+{% extends "default.html.jinja" %}
+{% block title %}girl.technology listing{% endblock title %}
+{% block main %}
+{% for category, category_listings in listings | group_by(attribute="category") %}
+<h2>{{category}}</h2>
+<ol>
+  {% for listing in category_listings | sort(attribute="timestamp") %}
+  <li>
+    <a href="{{listing.url}}" target="_blank">{{listing.url}}</a>
+  </li>
+  {% endfor %}
+</ol>
+{% endfor %}
+{% endblock main %}

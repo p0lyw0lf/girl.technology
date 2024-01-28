@@ -534,6 +534,8 @@ dependencies = [
  "clap",
  "diesel",
  "dotenvy",
+ "lazy_static",
+ "serde",
  "tera",
  "tokio",
 ]

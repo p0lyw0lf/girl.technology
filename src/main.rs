@@ -3,46 +3,64 @@ use clap::Parser;
 use diesel::pg::PgConnection;
 use diesel::prelude::*;
 use dotenvy::dotenv;
-use std::env;
-use std::net::Ipv4Addr;
-use std::sync::OnceLock;
+use std::{env, net::Ipv4Addr};
 use tera::Tera;
 
 mod models;
 mod schema;
 
-fn tera() -> &'static Tera {
-    static TERA: OnceLock<Tera> = OnceLock::new();
-    TERA.get_or_init(|| Tera::new("templates/**/*.html").unwrap())
+#[cfg(feature = "admin")]
+mod admin;
+
+lazy_static::lazy_static! {
+    static ref TERA: Tera = {
+        let mut tera = Tera::new("templates/**/*.html.jinja").expect("Template parsing error");
+        tera.autoescape_on(vec![".html.jinja"]);
+        tera
+    };
+    static ref BIND_ADDR: String = {
+        let cli = Cli::parse();
+        let ip = cli.ip.unwrap_or(Ipv4Addr::LOCALHOST);
+        let port = cli.port.unwrap_or(3000);
+        format!("{ip}:{port}")
+    };
+    static ref DEFAULT_CONTEXT: tera::Context = {
+        let mut context = tera::Context::new();
+        dotenv().ok();
+        let main_url = env::var("MAIN_URL").unwrap_or_else(|_| format!("http://{}", BIND_ADDR.to_string()));
+        context.insert("main_url", &main_url);
+        context
+    };
+    static ref DATABASE_URL: String = {
+        dotenv().ok();
+        env::var("DATABASE_URL").expect("DATABASE_URL must be set")
+    };
 }
 
-fn establish_connection() -> PgConnection {
-    dotenv().ok();
-
-    let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-    PgConnection::establish(&database_url)
-        .unwrap_or_else(|_| panic!("Error connecting to {}", database_url))
+/** Not static, since it should be created fresh each time I think */
+fn pg() -> PgConnection {
+    PgConnection::establish(&DATABASE_URL)
+        .unwrap_or_else(|_| panic!("Error connecting to {}", DATABASE_URL.to_string()))
 }
 
 async fn index() -> Html<String> {
-    Html(tera().render("index.html", &tera::Context::new()).unwrap())
+    Html(TERA.render("index.html.jinja", &DEFAULT_CONTEXT).unwrap())
 }
 
-async fn list() -> String {
+async fn list() -> Html<String> {
     use self::schema::listings::dsl::*;
 
-    let connection = &mut establish_connection();
+    let connection = &mut pg();
 
     let results = listings
         .select(models::Listing::as_select())
         .load(connection)
         .expect("Error loading listing");
 
-    results
-        .into_iter()
-        .map(|result| format!("{:?}", result))
-        .collect::<Vec<_>>()
-        .join(",")
+    let mut context = DEFAULT_CONTEXT.clone();
+    context.insert("listings", &results);
+
+    Html(TERA.render("list.html.jinja", &context).unwrap())
 }
 
 #[derive(Parser)]
@@ -53,15 +71,14 @@ struct Cli {
 
 #[tokio::main]
 async fn main() {
-    let cli = Cli::parse();
-    let ip = cli.ip.unwrap_or(Ipv4Addr::LOCALHOST);
-    let port = cli.port.unwrap_or(3000);
-    let bind_addr = format!("{ip}:{port}");
-
     let app = Router::new()
         .route("/", get(index))
         .route("/list", get(list));
 
+    #[cfg(feature = "admin")]
+    let app = crate::admin::register(app);
+
+    let bind_addr = BIND_ADDR.to_string();
     let listener = tokio::net::TcpListener::bind(&bind_addr).await.unwrap();
 
     println!("Now listening at http://{bind_addr}");

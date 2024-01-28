@@ -1,0 +1,13 @@
+{% extends "default.html.jinja" %}
+{% block title %} girl.technology submissions{% endblock title %}
+{% block main %}
+<form method="POST">
+  <label for="category">Category:</label>
+  <input type="text" id="category" name="category">
+  <br>
+  <label for="url">URL:</label>
+  <input type="url" id="url" name="url">
+  <br>
+  <input type="submit">
+</form>
+{% endblock main %}
