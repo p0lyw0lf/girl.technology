@@ -1,0 +1,2 @@
+[target.'cfg(target_os="windows")']
+rustflags = ["-l", "static=libcrypto", "-l", "static=libecpg", "-l", "static=libecpg_compat", "-l", "static=libpgcommon", "-l", "static=libpgport", "-l", "static=libpgtypes", "-l", "static=libpq", "-l", "static=libssl", "-l", "static=lz4", "-l", "static=zlib", "-L", "native=D:\\vcpkg\\installed\\x64-windows-static\\lib"]
