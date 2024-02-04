@@ -1,6 +1,6 @@
 [package]
 name = "girl_technology"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 repository = "https://github.com/p0lyw0lf/girl.technology"
 
@@ -8,10 +8,11 @@ repository = "https://github.com/p0lyw0lf/girl.technology"
 
 [dependencies]
 axum = { version = "0.7", features = ["macros"] }
-diesel = { version = "2.1", features = ["postgres"] }
+bb8 = "0.8"
+diesel = "2.1"
+diesel-async = { version = "0.4", features = ["bb8", "postgres"] }
 dotenvy = "0.15"
 clap = { version = "4", features = ["derive"] }
-lazy_static = "1.4"
 serde = { version = "1.0", features = ["derive"] }
 tera = "1.19"
 tokio = { version = "1", features = ["full"] }

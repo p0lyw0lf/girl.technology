@@ -1,10 +1,19 @@
-use axum::{response::Html, routing::get, Router};
+use axum::{
+    async_trait,
+    extract::{FromRef, FromRequestParts, State},
+    http::{request::Parts, StatusCode},
+    response::Html,
+    routing::get,
+    Router,
+};
 use clap::Parser;
-use diesel::pg::PgConnection;
 use diesel::prelude::*;
+use diesel_async::{
+    pooled_connection::AsyncDieselConnectionManager, AsyncPgConnection, RunQueryDsl,
+};
 use dotenvy::dotenv;
-use std::{env, net::Ipv4Addr};
-use tera::Tera;
+use std::{env, net::Ipv4Addr, sync::Arc};
+use tera::{Context, Tera};
 
 mod models;
 mod schema;
@@ -12,55 +21,45 @@ mod schema;
 #[cfg(feature = "admin")]
 mod admin;
 
-lazy_static::lazy_static! {
-    static ref TERA: Tera = {
-        let mut tera = Tera::new("templates/**/*.html.jinja").expect("Template parsing error");
-        tera.autoescape_on(vec![".html.jinja"]);
-        tera
-    };
-    static ref BIND_ADDR: String = {
-        let cli = Cli::parse();
-        let ip = cli.ip.unwrap_or(Ipv4Addr::LOCALHOST);
-        let port = cli.port.unwrap_or(3000);
-        format!("{ip}:{port}")
-    };
-    static ref DEFAULT_CONTEXT: tera::Context = {
-        let mut context = tera::Context::new();
-        dotenv().ok();
-        let main_url = env::var("MAIN_URL").unwrap_or_else(|_| format!("http://{}", BIND_ADDR.to_string()));
-        context.insert("main_url", &main_url);
-        context
-    };
-    static ref DATABASE_URL: String = {
-        dotenv().ok();
-        env::var("DATABASE_URL").expect("DATABASE_URL must be set")
-    };
+type Pool = bb8::Pool<AsyncDieselConnectionManager<AsyncPgConnection>>;
+
+#[derive(Clone, FromRef)]
+struct AppState {
+    tera: Arc<Tera>,
+    default_context: Context,
+    pool: Pool,
 }
 
-/** Not static, since it should be created fresh each time I think */
-fn pg() -> PgConnection {
-    PgConnection::establish(&DATABASE_URL)
-        .unwrap_or_else(|_| panic!("Error connecting to {}", DATABASE_URL.to_string()))
+async fn index(
+    State(AppState {
+        tera,
+        default_context,
+        ..
+    }): State<AppState>,
+) -> Html<String> {
+    Html(tera.render("index.html.jinja", &default_context).unwrap())
 }
 
-async fn index() -> Html<String> {
-    Html(TERA.render("index.html.jinja", &DEFAULT_CONTEXT).unwrap())
-}
-
-async fn list() -> Html<String> {
+async fn list(
+    DatabaseConnection(mut connection): DatabaseConnection,
+    State(AppState {
+        tera,
+        default_context,
+        ..
+    }): State<AppState>,
+) -> Html<String> {
     use self::schema::listings::dsl::*;
-
-    let connection = &mut pg();
 
     let results = listings
         .select(models::Listing::as_select())
-        .load(connection)
+        .load(&mut connection)
+        .await
         .expect("Error loading listing");
 
-    let mut context = DEFAULT_CONTEXT.clone();
+    let mut context = default_context.clone();
     context.insert("listings", &results);
 
-    Html(TERA.render("list.html.jinja", &context).unwrap())
+    Html(tera.render("list.html.jinja", &context).unwrap())
 }
 
 #[derive(Parser)]
@@ -71,6 +70,36 @@ struct Cli {
 
 #[tokio::main]
 async fn main() {
+    let cli = Cli::parse();
+    dotenv().ok();
+
+    let tera = {
+        let mut tera = Tera::new("templates/**/*.html.jinja").expect("Template parsing error");
+        tera.autoescape_on(vec![".html.jinja"]);
+        tera
+    };
+
+    let bind_addr = {
+        let ip = cli.ip.unwrap_or(Ipv4Addr::LOCALHOST);
+        let port = cli.port.unwrap_or(3000);
+        format!("{ip}:{port}")
+    };
+
+    let default_context = {
+        let mut context = tera::Context::new();
+        let main_url = env::var("MAIN_URL").unwrap_or_else(|_| format!("http://{bind_addr}"));
+        context.insert("main_url", &main_url);
+        context
+    };
+
+    let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+    let database_config =
+        AsyncDieselConnectionManager::<diesel_async::AsyncPgConnection>::new(database_url);
+    let pool = bb8::Pool::builder()
+        .build(database_config)
+        .await
+        .expect("Could not build postgres connection pool");
+
     let app = Router::new()
         .route("/", get(index))
         .route("/list", get(list));
@@ -78,9 +107,44 @@ async fn main() {
     #[cfg(feature = "admin")]
     let app = crate::admin::register(app);
 
-    let bind_addr = BIND_ADDR.to_string();
+    let app = app.with_state(AppState {
+        tera: Arc::new(tera),
+        default_context,
+        pool,
+    });
+
     let listener = tokio::net::TcpListener::bind(&bind_addr).await.unwrap();
 
     println!("Now listening at http://{bind_addr}");
     axum::serve(listener, app).await.unwrap();
+}
+
+struct DatabaseConnection(
+    bb8::PooledConnection<'static, AsyncDieselConnectionManager<AsyncPgConnection>>,
+);
+
+#[async_trait]
+impl<S> FromRequestParts<S> for DatabaseConnection
+where
+    S: Send + Sync,
+    Pool: FromRef<S>,
+{
+    type Rejection = (StatusCode, String);
+
+    async fn from_request_parts(_parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
+        let pool = Pool::from_ref(state);
+
+        let conn = pool.get_owned().await.map_err(internal_error)?;
+
+        Ok(Self(conn))
+    }
+}
+
+/// Utility function for mapping any error into a `500 Internal Server Error`
+/// response.
+fn internal_error<E>(err: E) -> (StatusCode, String)
+where
+    E: std::error::Error,
+{
+    (StatusCode::INTERNAL_SERVER_ERROR, err.to_string())
 }

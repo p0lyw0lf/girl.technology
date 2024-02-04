@@ -1,9 +1,11 @@
+use crate::models::Listing;
+use crate::{AppState, DatabaseConnection};
+use axum::extract::State;
 use axum::{response::Html, routing::get, Form, Router};
 use diesel::prelude::*;
 use diesel::Insertable;
+use diesel_async::RunQueryDsl;
 use serde::Deserialize;
-
-use crate::{models::Listing, pg, DEFAULT_CONTEXT, TERA};
 
 #[derive(Insertable, Deserialize)]
 #[diesel(table_name = crate::schema::listings)]
@@ -12,24 +14,33 @@ pub struct NewListing {
     pub url: String,
 }
 
-async fn submit() -> Html<String> {
-    Html(TERA.render("submit.html.jinja", &DEFAULT_CONTEXT).unwrap())
+async fn submit(
+    State(AppState {
+        tera,
+        default_context,
+        ..
+    }): State<AppState>,
+) -> Html<String> {
+    Html(tera.render("submit.html.jinja", &default_context).unwrap())
 }
 
-async fn submit_post(Form(new_listing): Form<NewListing>) -> Html<String> {
+async fn submit_post(
+    DatabaseConnection(mut conn): DatabaseConnection,
+    app_state: State<AppState>,
+    Form(new_listing): Form<NewListing>,
+) -> Html<String> {
     use crate::schema::listings;
-
-    let conn = &mut pg();
 
     diesel::insert_into(listings::table)
         .values(&new_listing)
         .returning(Listing::as_returning())
-        .get_result(conn)
+        .get_result(&mut conn)
+        .await
         .expect("Error saving listing");
 
-    submit().await
+    submit(app_state).await
 }
 
-pub fn register(app: Router) -> Router {
+pub fn register(app: Router<AppState>) -> Router<AppState> {
     app.route("/submit", get(submit).post(submit_post))
 }
