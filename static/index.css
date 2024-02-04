@@ -1,0 +1,46 @@
+body {
+  font-family: sans-serif;
+
+  /* Default to a light color scheme */
+  --primary: black;
+  --background: white;
+  --accented: #a30262;
+  --accented-secondary: #d162a4;
+
+  @media (prefers-color-scheme: dark) {
+    --primary: white;
+    --background: black;
+    --accented: #ff9a56;
+    --accented-secondary: #d52d00;
+  }
+
+  color: var(--primary);
+  background-color: var(--background);
+}
+
+a {
+  color: var(--accented);
+}
+
+h1 a,
+h2 a,
+h3 a,
+h4 a,
+h5 a,
+h6 a {
+  text-decoration: none;
+}
+
+a:visited {
+  color: var(--accented);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+li::marker {
+  color: var(--accented-secondary);
+}

@@ -8,4 +8,3 @@ sudo apt install postgresql postgresql-contrib libpq-dev
 
 cd "$dir"
 cargo install diesel_cli --no-default-features --features postgres
-diesel setup

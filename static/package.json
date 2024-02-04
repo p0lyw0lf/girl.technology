@@ -1,0 +1,13 @@
+{
+  "scripts": {
+    "build": "esbuild index.css --bundle --minify --outdir=dist",
+    "watch": "esbuild index.css --bundle --minify --outdir=dist --watch",
+    "lint": "stylelint \"**/*.css\""
+  },
+  "devDependencies": {
+    "esbuild": "0.20.0",
+    "prettier": "3.2.5",
+    "stylelint": "16.2.1",
+    "stylelint-config-standard": "36.0.0"
+  }
+}

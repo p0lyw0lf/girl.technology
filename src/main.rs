@@ -26,6 +26,9 @@ mod schema;
 #[cfg(feature = "admin")]
 mod admin;
 
+#[cfg(feature = "static")]
+mod r#static;
+
 type Pool = bb8::Pool<AsyncDieselConnectionManager<AsyncPgConnection>>;
 
 #[derive(Clone, FromRef)]
@@ -111,6 +114,9 @@ async fn main() {
 
     #[cfg(feature = "admin")]
     let app = crate::admin::register(app);
+
+    #[cfg(feature = "static")]
+    let app = crate::r#static::register(app);
 
     let app = app.with_state(AppState {
         tera: Arc::new(tera),
