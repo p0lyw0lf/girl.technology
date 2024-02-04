@@ -1,19 +1,24 @@
-use axum::{
-    async_trait,
-    extract::{FromRef, FromRequestParts, State},
-    http::{request::Parts, StatusCode},
-    response::Html,
-    routing::get,
-    Router,
-};
+use std::env;
+use std::net::Ipv4Addr;
+use std::sync::Arc;
+
+use axum::async_trait;
+use axum::extract::FromRef;
+use axum::extract::FromRequestParts;
+use axum::extract::State;
+use axum::http::request::Parts;
+use axum::http::StatusCode;
+use axum::response::Html;
+use axum::routing::get;
+use axum::Router;
 use clap::Parser;
 use diesel::prelude::*;
-use diesel_async::{
-    pooled_connection::AsyncDieselConnectionManager, AsyncPgConnection, RunQueryDsl,
-};
+use diesel_async::pooled_connection::AsyncDieselConnectionManager;
+use diesel_async::AsyncPgConnection;
+use diesel_async::RunQueryDsl;
 use dotenvy::dotenv;
-use std::{env, net::Ipv4Addr, sync::Arc};
-use tera::{Context, Tera};
+use tera::Context;
+use tera::Tera;
 
 mod models;
 mod schema;

@@ -1,11 +1,16 @@
-use crate::models::Listing;
-use crate::{AppState, DatabaseConnection};
 use axum::extract::State;
-use axum::{response::Html, routing::get, Form, Router};
+use axum::response::Html;
+use axum::routing::get;
+use axum::Form;
+use axum::Router;
 use diesel::prelude::*;
 use diesel::Insertable;
 use diesel_async::RunQueryDsl;
 use serde::Deserialize;
+
+use crate::models::Listing;
+use crate::AppState;
+use crate::DatabaseConnection;
 
 #[derive(Insertable, Deserialize)]
 #[diesel(table_name = crate::schema::listings)]

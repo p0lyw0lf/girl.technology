@@ -1,11 +1,19 @@
-use diesel::{
-    deserialize::{self, FromSql, FromSqlRow, Queryable},
-    expression::{AsExpression, Selectable},
-    pg::{Pg, PgValue},
-    serialize::{self, Output, ToSql},
-    sql_types::{self, Timestamp, Timestamptz},
-};
-use serde::{Deserialize, Serialize};
+use diesel::deserialize::FromSql;
+use diesel::deserialize::FromSqlRow;
+use diesel::deserialize::Queryable;
+use diesel::deserialize::{self};
+use diesel::expression::AsExpression;
+use diesel::expression::Selectable;
+use diesel::pg::Pg;
+use diesel::pg::PgValue;
+use diesel::serialize::Output;
+use diesel::serialize::ToSql;
+use diesel::serialize::{self};
+use diesel::sql_types::Timestamp;
+use diesel::sql_types::Timestamptz;
+use diesel::sql_types::{self};
+use serde::Deserialize;
+use serde::Serialize;
 
 #[derive(Queryable, Selectable, Debug, Serialize)]
 #[diesel(table_name = crate::schema::listings)]
