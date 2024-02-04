@@ -9,7 +9,7 @@ Restart=always
 RestartSec=1
 User=bot-girl-technology
 WorkingDirectory=/home/ubuntu/girl.technology
-ExecStart=/home/ubuntu/girl.technology/run.sh
+ExecStart=/home/bot-github_webhook_watcher/.cargo/bin/girl_technology
 
 [Install]
 WantedBy=multi-user.target
