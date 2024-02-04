@@ -5,6 +5,7 @@ cd "$dir/static"
 npm install
 npm run build
 cd ..
-diesel setup
+# Depends on `./install.sh` having run
+/home/ubuntu/.cargo/bin/diesel setup
 # Depends on `./after.sh` having run
 /home/bot-github_webhook_watcher/.cargo/bin/girl_technology
