@@ -8,9 +8,10 @@ use diesel::Insertable;
 use diesel_async::RunQueryDsl;
 use serde::Deserialize;
 
+use crate::internal_error;
 use crate::models::Listing;
 use crate::AppState;
-use crate::DatabaseConnection;
+use crate::Rejection;
 
 #[derive(Insertable, Deserialize)]
 #[diesel(table_name = crate::schema::listings)]
@@ -25,21 +26,25 @@ async fn submit(
         default_context,
         ..
     }): State<AppState>,
-) -> Html<String> {
-    Html(tera.render("submit.html.jinja", &default_context).unwrap())
+) -> Result<Html<String>, Rejection> {
+    Ok(Html(
+        tera.render("submit.html.jinja", &default_context)
+            .map_err(internal_error)?,
+    ))
 }
 
 async fn submit_post(
-    DatabaseConnection(mut conn): DatabaseConnection,
     app_state: State<AppState>,
     Form(new_listing): Form<NewListing>,
-) -> Html<String> {
+) -> Result<Html<String>, Rejection> {
     use crate::schema::listings;
+
+    let conn = &mut app_state.pool.get().await.map_err(internal_error)?;
 
     diesel::insert_into(listings::table)
         .values(&new_listing)
         .returning(Listing::as_returning())
-        .get_result(&mut conn)
+        .get_result(conn)
         .await
         .expect("Error saving listing");
 

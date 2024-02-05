@@ -8,15 +8,17 @@ repository = "https://github.com/p0lyw0lf/girl.technology"
 
 [dependencies]
 axum = { version = "0.7", features = ["macros"] }
-bb8 = "0.8"
+deadpool = "0.10"
 diesel = "2.1"
-diesel-async = { version = "0.4", features = ["bb8", "postgres"] }
+diesel-async = { version = "0.4", features = ["deadpool", "postgres"] }
 dotenvy = "0.15"
 clap = { version = "4", features = ["derive"] }
 serde = { version = "1.0", features = ["derive"] }
 tera = "1.19"
 tokio = { version = "1", features = ["full"] }
 tower-http = { version = "0.5", features = ["fs"], optional = true }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 
 [features]
 # Whether to build with admin routes
