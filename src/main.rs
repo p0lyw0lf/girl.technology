@@ -3,6 +3,7 @@ use std::net::Ipv4Addr;
 use std::sync::Arc;
 
 use axum::extract::FromRef;
+use axum::extract::Path;
 use axum::extract::State;
 use axum::http::StatusCode;
 use axum::response::Html;
@@ -56,9 +57,38 @@ async fn list(
     }): State<AppState>,
 ) -> Result<Html<String>, Rejection> {
     use self::schema::listings::dsl::*;
+    use diesel::dsl::count;
 
     let conn = &mut pool.get().await.map_err(internal_error)?;
-    let results = listings
+    let categories: Vec<String> = listings
+        .select(category)
+        .group_by(category)
+        .order_by(count(category))
+        .load(conn)
+        .await
+        .expect("Error loading listing");
+
+    let mut context = default_context.clone();
+    context.insert("categories", &categories);
+
+    Ok(Html(
+        tera.render("list.html.jinja", &context)
+            .map_err(internal_error)?,
+    ))
+}
+
+async fn category(
+    State(AppState {
+        tera,
+        default_context,
+        pool,
+    }): State<AppState>,
+    Path(input_category): Path<String>,
+) -> Result<Html<String>, Rejection> {
+    use self::schema::listings::dsl::*;
+
+    let conn = &mut pool.get().await.map_err(internal_error)?;
+    let results = diesel::QueryDsl::filter(listings, category.eq(&input_category))
         .select(models::Listing::as_select())
         .load(conn)
         .await
@@ -66,9 +96,10 @@ async fn list(
 
     let mut context = default_context.clone();
     context.insert("listings", &results);
+    context.insert("category", &input_category);
 
     Ok(Html(
-        tera.render("list.html.jinja", &context)
+        tera.render("category.html.jinja", &context)
             .map_err(internal_error)?,
     ))
 }
@@ -92,22 +123,44 @@ async fn main() {
     let cli = Cli::parse();
     dotenv().ok();
 
-    let tera = {
-        let mut tera = Tera::new("templates/**/*.html.jinja").expect("Template parsing error");
-        tera.autoescape_on(vec![".html.jinja"]);
-        tera
-    };
-
     let bind_addr = {
         let ip = cli.ip.unwrap_or(Ipv4Addr::LOCALHOST);
         let port = cli.port.unwrap_or(3000);
         format!("{ip}:{port}")
     };
 
+    let (is_local, main_domain) = match env::var("MAIN_DOMAIN") {
+        Ok(main_domain) => (false, main_domain),
+        Err(_) => (true, bind_addr.clone()),
+    };
+
+    let scheme = if is_local { "http" } else { "https" };
+
+    let tera = {
+        let mut tera = Tera::new("templates/**/*.html.jinja").expect("Template parsing error");
+        tera.autoescape_on(vec![".html.jinja"]);
+        tera.register_filter("category_to_url", {
+            let main_domain = main_domain.clone();
+            move |category: &tera::Value, _: &_| {
+                let category = match category.as_str() {
+                    Some(category) => category,
+                    None => return Err(tera::Error::msg("invalid category")),
+                };
+                // TODO: other validation, just in case ?
+                let url = if is_local {
+                    format!("{scheme}://{main_domain}/{category}")
+                } else {
+                    format!("{scheme}://{category}.{main_domain}/")
+                };
+                Ok(url.into())
+            }
+        });
+        tera
+    };
+
     let default_context = {
         let mut context = tera::Context::new();
-        let main_url = env::var("MAIN_URL").unwrap_or_else(|_| format!("http://{bind_addr}"));
-        context.insert("main_url", &main_url);
+        context.insert("main_url", &format!("{scheme}://{main_domain}/"));
         context
     };
 
@@ -120,7 +173,8 @@ async fn main() {
 
     let app = Router::new()
         .route("/", get(index))
-        .route("/list", get(list));
+        .route("/list", get(list))
+        .route("/:category", get(category));
 
     #[cfg(feature = "admin")]
     let app = crate::admin::register(app);

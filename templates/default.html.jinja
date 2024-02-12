@@ -31,12 +31,6 @@
 <header>
 {% block banner %}
   <h1><a href="{{main_url}}">{% block bannertext %}girl.technology{% endblock bannertext %}</a></h1>
-  <nav>
-    {% block nav %}
-    <a href="{{main_url}}">home</a>
-    <a href="/list">list</a>
-    {% endblock nav %}
-  </nav>
 {% endblock banner %}
 </header>
 <main>
@@ -45,7 +39,11 @@
 <footer>
   {% block footer %}
   <nav>
+    {% block nav %}
+    <a href="{{main_url}}">home</a>
+    <a href="/list">list</a>
     <a href="https://github.com/p0lyw0lf/girl.technology">github</a>
+    {% endblock nav %}
   </nav>
   {% endblock footer %}
 </footer>
