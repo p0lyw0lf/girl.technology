@@ -18,6 +18,7 @@ use diesel_async::RunQueryDsl;
 use dotenvy::dotenv;
 use tera::Context;
 use tera::Tera;
+use tower_http::trace::TraceLayer;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
 
@@ -114,8 +115,17 @@ struct Cli {
 async fn main() {
     tracing_subscriber::registry()
         .with(
-            tracing_subscriber::EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| "girl_technology=debug".into()),
+            tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_| {
+                [
+                    "info",
+                    "tower_http::trace::make_span=debug",
+                    "tower_http::trace::on_request=debug",
+                    "tower_http::trace::on_response=debug",
+                    "girl_technology=debug",
+                ]
+                .join(",")
+                .into()
+            }),
         )
         .with(tracing_subscriber::fmt::layer())
         .init();
@@ -182,11 +192,13 @@ async fn main() {
     #[cfg(feature = "static")]
     let app = crate::r#static::register(app);
 
-    let app = app.with_state(AppState {
-        tera: Arc::new(tera),
-        default_context,
-        pool,
-    });
+    let app = app
+        .with_state(AppState {
+            tera: Arc::new(tera),
+            default_context,
+            pool,
+        })
+        .layer(TraceLayer::new_for_http());
 
     let listener = tokio::net::TcpListener::bind(&bind_addr).await.unwrap();
 
