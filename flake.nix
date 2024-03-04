@@ -22,6 +22,14 @@
 
         # For `nix develop`:
         devShell = pkgs.mkShell {
+          packages = with pkgs;
+            [
+              (diesel-cli.override {
+                sqliteSupport = false;
+                postgresqlSupport = true;
+                mysqlSupport = false;
+              })
+            ];
           nativeBuildInputs = with pkgs; [ rustc cargo ];
         };
       }
