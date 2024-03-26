@@ -13,11 +13,15 @@
         };
 
         naersk' = pkgs.callPackage naersk {};
+        nativeBuildInputs = with pkgs; [ pkg-config ];
+        buildInputs = with pkgs; [ openssl ];
 
       in rec {
         # For `nix build` & `nix run`:
         defaultPackage = naersk'.buildPackage {
           src = ./.;
+          inherit nativeBuildInputs;
+          inherit buildInputs;
         };
 
         # For `nix develop`:
@@ -32,7 +36,8 @@
               })
               nodejs_20
             ];
-          nativeBuildInputs = with pkgs; [ rustc cargo ];
+          nativeBuildInputs = nativeBuildInputs ++ (with pkgs; [ rustc cargo ]);
+          inherit buildInputs;
         };
       }
     );

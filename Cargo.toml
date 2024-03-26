@@ -1,6 +1,6 @@
 [package]
 name = "girl_technology"
-version = "0.1.4"
+version = "0.2.0"
 edition = "2021"
 repository = "https://github.com/p0lyw0lf/girl.technology"
 
@@ -8,17 +8,19 @@ repository = "https://github.com/p0lyw0lf/girl.technology"
 
 [dependencies]
 axum = { version = "0.7", features = ["macros"] }
+clap = { version = "4", features = ["derive"] }
 deadpool = "0.10"
 diesel = "2.1"
 diesel-async = { version = "0.4", features = ["deadpool", "postgres"] }
 dotenvy = "0.15"
-clap = { version = "4", features = ["derive"] }
+reqwest = "0.12"
 serde = { version = "1.0", features = ["derive"] }
 tera = "1.19"
 tokio = { version = "1", features = ["full"] }
 tower-http = { version = "0.5", features = ["trace"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+url = "2"
 
 [features]
 # Whether to build with admin routes
