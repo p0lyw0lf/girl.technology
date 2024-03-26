@@ -1,4 +1,4 @@
-#!/bin/env sh
+#!/usr/bin/env bash
 
 dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd -P)
 cd "$dir/static"
@@ -8,4 +8,4 @@ cd ..
 # Depends on `./install.sh` having run
 /home/ubuntu/.cargo/bin/diesel setup
 # Depends on `./after.sh` having run
-/home/bot-github_webhook_watcher/.cargo/bin/girl_technology
+/home/ubuntu/.cargo/bin/girl_technology
