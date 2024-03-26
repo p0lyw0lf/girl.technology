@@ -3,7 +3,7 @@
 This is the source code for the website <https://girl.technology>.
 
 ## Goals
-* [ ] Link directory for personal websites
+* [x] Link directory for personal websites
 * [ ] Automated registration
 * [ ] Automated web graph creation
 
@@ -13,9 +13,6 @@ etc. of different personal websites. For example, the website
 <https://wolfgirl.dev> would be listed under <https://wolf.girl.technology>.
 The purpose of this is to let users discover other websites or blogs similar to
 their interests.
-
-Initially, the list of categories available will be fixed, though that may
-change at some point in the future.
 
 ### Automated Registration
 Initially, users will have to put their links in the database by contacting the
