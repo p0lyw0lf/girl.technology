@@ -57,8 +57,9 @@ async fn list(
         pool,
     }): State<AppState>,
 ) -> Result<Html<String>, Rejection> {
-    use self::schema::listings::dsl::*;
     use diesel::dsl::count;
+
+    use self::schema::listings::dsl::*;
 
     let conn = &mut pool.get().await.map_err(internal_error)?;
     let categories: Vec<String> = listings

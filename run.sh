@@ -1,4 +1,4 @@
-#!/bin/env sh
+#!/usr/bin/env bash
 
 # NOTE: this script should only be used for development purposes
 

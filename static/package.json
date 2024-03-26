@@ -1,7 +1,7 @@
 {
   "scripts": {
     "build": "esbuild index.css --bundle --minify --outdir=dist",
-    "watch": "esbuild index.css --bundle --minify --outdir=dist --watch",
+    "watch": "esbuild index.css --bundle --minify --outdir=dist --watch=forever",
     "lint": "stylelint \"**/*.css\""
   },
   "devDependencies": {

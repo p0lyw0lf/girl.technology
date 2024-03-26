@@ -24,11 +24,13 @@
         devShell = pkgs.mkShell {
           packages = with pkgs;
             [
+              cargo-watch
               (diesel-cli.override {
                 sqliteSupport = false;
                 postgresqlSupport = true;
                 mysqlSupport = false;
               })
+              nodejs_20
             ];
           nativeBuildInputs = with pkgs; [ rustc cargo ];
         };
