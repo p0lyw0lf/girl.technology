@@ -1,10 +1,24 @@
-{% extends "default.html.jinja" %}
-{% block bannertext %}Hello, World!{% endblock bannertext %}
-{% block main %}
+{% extends "default.html.jinja" %} {% block bannertext %}Hello, World!{%
+endblock bannertext %} {% block main %}
 <p>
-This is the future home of a site whose vision is outlined at <a href="https://github.com/p0lyw0lf/girl.technology"><code>p0lyw0lf/girl.technology</code></a>.
+  This is the home of a site whose vision is outlined at
+  <a href="https://github.com/p0lyw0lf/girl.technology"
+    >https://github.com/p0lyw0lf/girl.technology</a
+  >.
+</p>
+{% set example_url = "wolf" | category_to_url %}
+<p>
+  Basically, this site is a link directory, where you can add your own links to
+  a fancy URL. For example, because the file
+  <a href="https://wolfgirl.dev/.well-known/girl.technology"
+    >https://wolfgirl.dev/.well-known/girl.technology</a
+  >
+  exists and is the string "wolf", the page
+  <a href="{{ example_url | safe }}">{{ example_url | safe }}</a> contains the
+  url <a href="https://wolfgirl.dev/">https://wolfgirl.dev/</a> (my blog!).
 </p>
 <p>
-Currently, all that's set up is a bit of <a href="https://github.com/p0lyw0lf/infrastructure">infrastructure</a> and a singular database entry for my own website, <a href="https://wolfgirl.dev/">wolfgirl.dev</a>.
+  You can add your own page by going to <a href="/new">/new</a> and following
+  the instructions. Do it! <a href="/new">Do it now!!!</a>
 </p>
 {% endblock main %}

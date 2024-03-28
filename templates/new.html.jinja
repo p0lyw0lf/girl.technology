@@ -1,0 +1,26 @@
+{% extends "default.html.jinja" %}
+{% block title %}girl.technology submissions{% endblock title %}
+{% block main %}
+Use this form to add your website to the listing! Instructions:
+<ol>
+  <li>At the URL you want to submit, create a <code>.well-known</code> directory</li>
+  <li>Inside that directory, create a file <code>girl.technology</code></li>
+  <li>
+    Inside that file, write the category you want to be listed under. It must be a valid subdomain:
+    <ul>
+      <li>a-z, 0-9</li>
+      <li>- allowed, but not as start or end character</li>
+      <li>255 characters or less</li>
+    </ul>
+  </li>
+</ol>
+<form method="POST">
+  <label for="url">URL:</label>
+  <input type="url" id="url" name="url">
+  <br>
+  <input type="submit">
+</form>
+{% if message is defined %}
+  <h4>{{ message }}</h4>
+{% endif %}
+{% endblock main %}

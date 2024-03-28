@@ -3,22 +3,12 @@ use axum::response::Html;
 use axum::routing::get;
 use axum::Form;
 use axum::Router;
-use diesel::prelude::*;
-use diesel::Insertable;
 use diesel_async::RunQueryDsl;
-use serde::Deserialize;
 
+use crate::checker::NewListing;
 use crate::internal_error;
-use crate::models::Listing;
 use crate::AppState;
 use crate::Rejection;
-
-#[derive(Insertable, Deserialize)]
-#[diesel(table_name = crate::schema::listings)]
-pub struct NewListing {
-    pub category: String,
-    pub url: String,
-}
 
 async fn submit(
     State(AppState {
@@ -27,10 +17,7 @@ async fn submit(
         ..
     }): State<AppState>,
 ) -> Result<Html<String>, Rejection> {
-    Ok(Html(
-        tera.render("submit.html.jinja", &default_context)
-            .map_err(internal_error)?,
-    ))
+    crate::render(&tera, "admin_submit.html.jinja", &default_context)
 }
 
 async fn submit_post(
@@ -43,14 +30,13 @@ async fn submit_post(
 
     diesel::insert_into(listings::table)
         .values(&new_listing)
-        .returning(Listing::as_returning())
-        .get_result(conn)
+        .execute(conn)
         .await
         .expect("Error saving listing");
 
     submit(app_state).await
 }
 
-pub fn register(app: Router<AppState>) -> Router<AppState> {
-    app.route("/submit", get(submit).post(submit_post))
+pub fn routes() -> Router<AppState> {
+    Router::new().route("/submit", get(submit).post(submit_post))
 }

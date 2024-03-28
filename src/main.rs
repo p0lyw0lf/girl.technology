@@ -51,6 +51,12 @@ async fn index(
     Html(tera.render("index.html.jinja", &default_context).unwrap())
 }
 
+fn render(tera: &Tera, template: &str, context: &Context) -> Result<Html<String>, Rejection> {
+    Ok(Html(
+        tera.render(template, &context).map_err(internal_error)?,
+    ))
+}
+
 async fn list(
     State(AppState {
         tera,
@@ -74,10 +80,7 @@ async fn list(
     let mut context = default_context.clone();
     context.insert("categories", &categories);
 
-    Ok(Html(
-        tera.render("list.html.jinja", &context)
-            .map_err(internal_error)?,
-    ))
+    render(&tera, "list.html.jinja", &context)
 }
 
 async fn category(
@@ -101,10 +104,7 @@ async fn category(
     context.insert("listings", &results);
     context.insert("category", &input_category);
 
-    Ok(Html(
-        tera.render("category.html.jinja", &context)
-            .map_err(internal_error)?,
-    ))
+    render(&tera, "category.html.jinja", &context)
 }
 
 #[derive(Parser)]
@@ -160,7 +160,7 @@ async fn main() {
                 };
                 // TODO: other validation, just in case ?
                 let url = if is_local {
-                    format!("{scheme}://{main_domain}/{category}")
+                    format!("{scheme}://{main_domain}/category/{category}")
                 } else {
                     format!("{scheme}://{category}.{main_domain}/")
                 };
@@ -186,21 +186,22 @@ async fn main() {
     let app = Router::new()
         .route("/", get(index))
         .route("/list", get(list))
-        .route("/:category", get(category));
+        .route("/category/:category", get(category))
+        .nest("/new", crate::checker::routes());
 
     #[cfg(feature = "admin")]
-    let app = crate::admin::register(app);
+    let app = app.nest("/admin", crate::admin::routes());
+
+    let app = app.with_state(AppState {
+        tera: Arc::new(tera),
+        default_context,
+        pool,
+    });
 
     #[cfg(feature = "static")]
-    let app = crate::r#static::register(app);
+    let app = app.merge(crate::r#static::routes());
 
-    let app = app
-        .with_state(AppState {
-            tera: Arc::new(tera),
-            default_context,
-            pool,
-        })
-        .layer(TraceLayer::new_for_http());
+    let app = app.layer(TraceLayer::new_for_http());
 
     let listener = tokio::net::TcpListener::bind(&bind_addr).await.unwrap();
 
@@ -212,7 +213,7 @@ async fn main() {
 /// response.
 fn internal_error<E>(err: E) -> Rejection
 where
-    E: std::error::Error,
+    E: ToString,
 {
     (StatusCode::INTERNAL_SERVER_ERROR, err.to_string())
 }

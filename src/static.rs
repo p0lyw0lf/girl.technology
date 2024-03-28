@@ -1,10 +1,9 @@
 use axum::Router;
 use tower_http::services::ServeDir;
 
-use crate::AppState;
-
-pub fn register(app: Router<AppState>) -> Router<AppState> {
+pub fn routes() -> Router {
     // See the esbuild project in the `static` folder
-    app.nest_service("/static", ServeDir::new("static/dist"))
+    Router::new()
+        .nest_service("/static", ServeDir::new("static/dist"))
         .nest_service("/assets", ServeDir::new("assets"))
 }
