@@ -25,19 +25,10 @@
         };
 
         # For `nix develop`:
-        devShell = pkgs.mkShell {
-          packages = with pkgs;
-            [
-              cargo-watch
-              (diesel-cli.override {
-                sqliteSupport = false;
-                postgresqlSupport = true;
-                mysqlSupport = false;
-              })
-              nodejs_20
-            ];
-          nativeBuildInputs = nativeBuildInputs ++ (with pkgs; [ rustc cargo ]);
+        devShell = (import ./shell.nix) {
+          inherit pkgs;
           inherit buildInputs;
+          inherit nativeBuildInputs;
         };
       }
     );
