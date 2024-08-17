@@ -21,7 +21,7 @@ body {
 a {
   color: var(--accented);
 
-  &:visited {
+  :visited {
     color: var(--accented);
   }
 }
@@ -34,11 +34,16 @@ h5,
 h6 {
   color: var(--accented-secondary);
 
-  & a {
+  ul &,
+  ol & {
+    display: inline;
+  }
+
+  a {
     text-decoration: none;
     color: var(--accented-secondary);
 
-    &:visited {
+    :visited {
       color: var(--accented-secondary);
     }
   }

@@ -10,6 +10,8 @@ pkgs.mkShell {
         mysqlSupport = false;
       })
       nodejs_20
+      rust-analyzer
+      rustfmt
     ];
   nativeBuildInputs = nativeBuildInputs ++ (with pkgs; [
     cargo
@@ -35,12 +37,12 @@ pkgs.mkShell {
 
     export PGDATA=$NIX_SHELL_DIR/db
 
-    ####################################################################
-    # Put any Mix-related data in the project directory
-    ####################################################################
-
-    export MIX_HOME="$NIX_SHELL_DIR/.mix"
-    export MIX_ARCHIVES="$MIX_HOME/archives"
+    # Add custom rust-analyzer path to coc configuration
+    cat <<EOF > $PWD/coc-settings.json
+      {
+        "rust-analyzer.server.path": "${pkgs.rust-analyzer}/bin/rust-analyzer"
+      }
+    EOF
 
     ######################################################################
     # Clean up after exiting the Nix shell using `trap`.                 #
@@ -71,6 +73,9 @@ pkgs.mkShell {
 
         cd $PWD
         rm -rf $NIX_SHELL_DIR
+
+        # Delete rust-analyzer settings
+        rm coc-settings.json
       " \
       EXIT
 

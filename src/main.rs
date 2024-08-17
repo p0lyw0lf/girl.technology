@@ -7,6 +7,7 @@ use axum::extract::Path;
 use axum::extract::State;
 use axum::http::StatusCode;
 use axum::response::Html;
+use axum::response::Redirect;
 use axum::routing::get;
 use axum::Router;
 use clap::Parser;
@@ -64,33 +65,26 @@ async fn list(
         pool,
     }): State<AppState>,
 ) -> Result<Html<String>, Rejection> {
-    use diesel::dsl::count;
-
     use self::schema::listings::dsl::*;
 
     let conn = &mut pool.get().await.map_err(internal_error)?;
-    let categories: Vec<String> = listings
-        .select(category)
-        .group_by(category)
-        .order_by(count(category))
+    let all_listings: Vec<_> = listings
+        .select(models::Listing::as_select())
+        .order_by(timestamp)
         .load(conn)
         .await
         .expect("Error loading listing");
 
     let mut context = default_context.clone();
-    context.insert("categories", &categories);
+    context.insert("listings", &all_listings);
 
     render(&tera, "list.html.jinja", &context)
 }
 
 async fn category(
-    State(AppState {
-        tera,
-        default_context,
-        pool,
-    }): State<AppState>,
+    State(AppState { pool, .. }): State<AppState>,
     Path(input_category): Path<String>,
-) -> Result<Html<String>, Rejection> {
+) -> Result<Redirect, Rejection> {
     use self::schema::listings::dsl::*;
 
     let conn = &mut pool.get().await.map_err(internal_error)?;
@@ -100,11 +94,11 @@ async fn category(
         .await
         .expect("Error loading listing");
 
-    let mut context = default_context.clone();
-    context.insert("listings", &results);
-    context.insert("category", &input_category);
+    let listing = results
+        .get(0)
+        .ok_or_else(|| external_error(format!("listing for {input_category} not found")))?;
 
-    render(&tera, "category.html.jinja", &context)
+    Ok(Redirect::temporary(&listing.url))
 }
 
 #[derive(Parser)]
@@ -216,4 +210,12 @@ where
     E: ToString,
 {
     (StatusCode::INTERNAL_SERVER_ERROR, err.to_string())
+}
+
+/// Utility function for mapping any error into a `400 Bad Request` response.
+fn external_error<E>(err: E) -> Rejection
+where
+    E: ToString,
+{
+    (StatusCode::BAD_REQUEST, err.to_string())
 }

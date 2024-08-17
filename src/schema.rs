@@ -1,8 +1,7 @@
 // @generated automatically by Diesel CLI.
 
 diesel::table! {
-    listings (id) {
-        id -> Int4,
+    listings (category) {
         category -> Varchar,
         url -> Varchar,
         timestamp -> Timestamp,

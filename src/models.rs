@@ -19,7 +19,6 @@ use serde::Serialize;
 #[diesel(table_name = crate::schema::listings)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
 pub struct Listing {
-    pub id: i32,
     pub category: String,
     pub url: String,
     pub timestamp: PgTimestamp,

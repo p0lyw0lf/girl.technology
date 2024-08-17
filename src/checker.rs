@@ -12,6 +12,7 @@ use serde::Deserialize;
 
 use url::Url;
 
+use crate::external_error;
 use crate::internal_error;
 use crate::AppState;
 use crate::Rejection;
@@ -137,13 +138,11 @@ async fn post_new(
         Err(e) => return render_message(e),
     };
 
-    let success_message = format!("successfully added to the {category} category!");
-
     use crate::schema::listings;
 
     let conn = &mut pool.get().await.map_err(internal_error)?;
     let values = NewListing {
-        category,
+        category: category.to_string(),
         url: url.to_string(),
     };
 
@@ -154,9 +153,23 @@ async fn post_new(
         .set(&values)
         .execute(conn)
         .await
-        .map_err(|_| internal_error("error saving listing"))?;
+        .map_err(|e| {
+            if matches!(
+                e,
+                diesel::result::Error::DatabaseError(
+                    diesel::result::DatabaseErrorKind::UniqueViolation,
+                    _
+                )
+            ) {
+                external_error(format!(
+                    "category {category} or url {url} already present in database"
+                ))
+            } else {
+                internal_error(format!("error saving listing: {e:?}"))
+            }
+        })?;
 
-    render_message(&success_message)
+    render_message(&format!("successfully added to the {category} category!"))
 }
 
 pub fn routes() -> Router<AppState> {
@@ -171,7 +184,7 @@ pub fn routes() -> Router<AppState> {
             .route_layer(tower::timeout::TimeoutLayer::new(
                 core::time::Duration::from_secs(30),
             ))
-            .handle_error(|err: tower::BoxError| async { crate::internal_error(err) })
+            .handle_error(|err: tower::BoxError| async { internal_error(err) })
             // Don't apply ratelimiting to `get`, only to `post`
             .get(get_new),
     )
