@@ -4,7 +4,8 @@ This is the source code for the website <https://girl.technology>.
 
 ## Goals
 * [x] Link directory for personal websites
-* [ ] Automated registration
+* [x] Automated registration
+  * [ ] Dead site removal
 * [ ] Automated web graph creation
 
 ### Link Directory
@@ -13,6 +14,10 @@ etc. of different personal websites. For example, the website
 <https://wolfgirl.dev> would be listed under <https://wolf.girl.technology>.
 The purpose of this is to let users discover other websites or blogs similar to
 their interests.
+
+UPDATE: Due to low traffic, only 1 link per category is allowed currently, and
+the categories act as redirects instead of lists. This decision may be
+revisited if this service becomes more popular.
 
 ### Automated Registration
 Initially, users will have to put their links in the database by contacting the
