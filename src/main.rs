@@ -122,8 +122,8 @@ async fn main() {
     dotenv().ok();
 
     let bind_addr = {
-        let ip = env::var("IP").unwrap_or(Ipv4Addr::LOCALHOST);
-        let port = env::var("PORT").unwrap_or(3000);
+        let ip = env::var("IP").unwrap_or(Ipv4Addr::LOCALHOST.to_string());
+        let port = env::var("PORT").unwrap_or(3000.to_string());
         format!("{ip}:{port}")
     };
 

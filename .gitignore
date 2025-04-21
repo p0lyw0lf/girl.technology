@@ -1,6 +1,5 @@
 /target
 /result
-/.direnv
 .env
 .nix-shell
 coc-settings.json

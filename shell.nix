@@ -1,24 +1,29 @@
-{ pkgs, buildInputs, nativeBuildInputs }:
+{
+  pkgs,
+  buildInputs,
+  nativeBuildInputs,
+}:
 
 pkgs.mkShell {
-  packages = with pkgs;
-    [
-      cargo-dist
-      cargo-watch
-      (diesel-cli.override {
-        sqliteSupport = false;
-        postgresqlSupport = true;
-        mysqlSupport = false;
-      })
-      nodejs_20
-      rust-analyzer
-      rustfmt
-    ];
-  nativeBuildInputs = nativeBuildInputs ++ (with pkgs; [
-    cargo
-    rustc
-    postgresql
-  ]);
+  packages = with pkgs; [
+    cargo-dist
+    cargo-watch
+    (diesel-cli.override {
+      sqliteSupport = false;
+      postgresqlSupport = true;
+      mysqlSupport = false;
+    })
+    nodejs_20
+    rust-analyzer
+    rustfmt
+  ];
+  nativeBuildInputs =
+    nativeBuildInputs
+    ++ (with pkgs; [
+      cargo
+      rustc
+      postgresql
+    ]);
   inherit buildInputs;
 
   # Copied from https://github.com/toraritte/shell.nixes/blob/a7deb07f98b1b9d68bb90f49a4bb7f8057b5c622/elixir-phoenix-postgres/shell.nix
