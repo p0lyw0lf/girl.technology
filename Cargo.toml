@@ -1,6 +1,6 @@
 [package]
 name = "girl_technology"
-version = "0.3.0"
+version = "0.4.0"
 edition = "2021"
 repository = "https://github.com/p0lyw0lf/girl.technology"
 
@@ -8,7 +8,6 @@ repository = "https://github.com/p0lyw0lf/girl.technology"
 
 [dependencies]
 axum = { version = "0.7", features = ["macros"] }
-clap = { version = "4", features = ["derive"] }
 deadpool = "0.10"
 diesel = "2.1"
 diesel-async = { version = "0.4", features = ["deadpool", "postgres"] }

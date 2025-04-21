@@ -10,7 +10,6 @@ use axum::response::Html;
 use axum::response::Redirect;
 use axum::routing::get;
 use axum::Router;
-use clap::Parser;
 use diesel::prelude::*;
 use diesel_async::pooled_connection::deadpool::Pool;
 use diesel_async::pooled_connection::AsyncDieselConnectionManager;
@@ -101,12 +100,6 @@ async fn category(
     Ok(Redirect::temporary(&listing.url))
 }
 
-#[derive(Parser)]
-struct Cli {
-    ip: Option<Ipv4Addr>,
-    port: Option<u16>,
-}
-
 #[tokio::main]
 async fn main() {
     tracing_subscriber::registry()
@@ -126,12 +119,11 @@ async fn main() {
         .with(tracing_subscriber::fmt::layer())
         .init();
 
-    let cli = Cli::parse();
     dotenv().ok();
 
     let bind_addr = {
-        let ip = cli.ip.unwrap_or(Ipv4Addr::LOCALHOST);
-        let port = cli.port.unwrap_or(3000);
+        let ip = env::var("IP").unwrap_or(Ipv4Addr::LOCALHOST);
+        let port = env::var("PORT").unwrap_or(3000);
         format!("{ip}:{port}")
     };
 
