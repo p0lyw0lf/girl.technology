@@ -122,12 +122,12 @@ async fn main() {
     dotenv().ok();
 
     let bind_addr = {
-        let ip = env::var("IP").unwrap_or(Ipv4Addr::LOCALHOST.to_string());
-        let port = env::var("PORT").unwrap_or(3000.to_string());
+        let ip = env::var("GIRL_TECHNOLOGY_IP").unwrap_or(Ipv4Addr::LOCALHOST.to_string());
+        let port = env::var("GIRL_TECHNOLOGY_PORT").unwrap_or(3000.to_string());
         format!("{ip}:{port}")
     };
 
-    let (is_local, main_domain) = match env::var("MAIN_DOMAIN") {
+    let (is_local, main_domain) = match env::var("GIRL_TECHNOLOGY_MAIN_DOMAIN") {
         Ok(main_domain) => (false, main_domain),
         Err(_) => (true, bind_addr.clone()),
     };
