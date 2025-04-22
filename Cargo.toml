@@ -29,8 +29,3 @@ url = "2"
 admin = []
 # Whether to serve static content as well
 static = ["tower-http/fs"]
-
-# The profile that 'cargo dist' will build with
-[profile.dist]
-inherits = "release"
-lto = "thin"

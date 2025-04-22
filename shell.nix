@@ -6,7 +6,6 @@
 
 pkgs.mkShell {
   packages = with pkgs; [
-    cargo-dist
     cargo-watch
     (diesel-cli.override {
       sqliteSupport = false;
