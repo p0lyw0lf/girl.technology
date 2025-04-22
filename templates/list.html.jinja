@@ -4,9 +4,7 @@ endblock title %} {% block main %}
   {% for listing in listings %}
   <li>
     <h2>
-      <a href="{{ listing.category | category_to_url }}"
-        >{{ listing.category }}:</a
-      >
+      <a href="{{ listing.category | category_to_url }}">{{ listing.category }}:</a>
     </h2>
     <a href="{{ listing.url }}">{{ listing.url }}</a>
   </li>
