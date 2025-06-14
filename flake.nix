@@ -17,6 +17,13 @@
       let
         pkgs = (import nixpkgs) {
           inherit system;
+          overlays = [
+            (final: prev: {
+              girl-technology = final.pkgs.callPackage ./packages/girl-technology { };
+              girl-technology-server = final.pkgs.callPackage ./packages/girl-technology-server { };
+              girl-technology-static = final.pkgs.callPackage ./packages/girl-technology-static { };
+            })
+          ];
         };
 
         naersk' = pkgs.callPackage naersk { };
@@ -30,6 +37,11 @@
           src = ./.;
           inherit nativeBuildInputs;
           inherit buildInputs;
+        };
+
+        # For use in infrastructure-y code
+        packages = {
+          inherit (pkgs) girl-technology-server;
         };
 
         # For `nix develop`:
